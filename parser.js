@@ -9,8 +9,7 @@ class ContentParser {
         this.allowedDomains = options.allowedDomains || [
             'www.samsung.com',
             'p6-qa.samsung.com',
-            'p6-eu-author.samsung.com',
-            'sites.html/content/samsung'
+            'p6-eu-author.samsung.com/content/samsung',
         ];
 
         // Current division(s) for filtering disclaimers
