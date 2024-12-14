@@ -10,6 +10,9 @@ class ContentParser {
             'p6-eu-author.samsung.com/content/samsung',
         ];
 
+        // QA Date for testing disclaimer validity
+        this.QAdate = options.QAdate || null;
+
         // Current division(s) for filtering disclaimers
         this.currentDivision = (options.currentDivision || 'ALL').toUpperCase().replace(/\s/g, '');
 
@@ -20,209 +23,76 @@ class ContentParser {
         this.initPromise = null;
     }
 
-    init() {
-        if (!this.initPromise) {
-            this.initPromise = new Promise((resolve, reject) => {
-                $.getJSON(this.jsonURL)
-                    .done(data => {
-                        console.log('JSON caricato:', data);
-                        this.data = data;
-                        resolve(data);
-                    })
-                    .fail((jqXHR, textStatus, errorThrown) => {
-                        console.error('Errore nel caricamento:', textStatus, errorThrown);
-                        reject(errorThrown);
-                    });
-            });
-        }
-        return this.initPromise;
-    }
+    // ... other existing methods ...
 
-    // Normalizza l'URL estraendo solo il percorso relativo
-    normalizeUrl(url) {
-        try {
-            // Converti l'URL in un oggetto URL
-            const parsedUrl = new URL(url, 'https://www.samsung.com');
-            
-            // Estrai il percorso relativo
-            let cleanUrl = parsedUrl.pathname;
-            
-            // Rimuove .html finale
-            cleanUrl = cleanUrl.replace(/\.html$/, '');
-            
-            // Rimuove slash iniziale e finale
-            cleanUrl = cleanUrl.replace(/^\/|\/$/g, '');
-            
-            return cleanUrl;
-        } catch (error) {
-            console.error('Errore nella normalizzazione URL:', error);
-            return url;
-        }
-    }
-
-    // Verifica se l'URL corrente è in un dominio consentito
-    isValidDomain(url) {
-        try {
-            const parsedUrl = new URL(url);
-            return this.allowedDomains.some(domain => 
-                parsedUrl.hostname.includes(domain) || 
-                domain.includes(parsedUrl.hostname)
-            );
-        } catch (error) {
-            console.error('Errore nel controllo del dominio:', error);
-            return false;
-        }
-    }
-
-    // Verifica se un disclaimer è attivo in base alla data corrente
+    // Modified method to handle QA date testing
     isDisclaimerActive(disclaimer) {
-        // Se mancano startDate e endDate, considera il disclaimer sempre attivo
+        // Check if in QA environment and QA date is provided
+        const isQADomain = ['p6-qa.samsung.com', 'p6-eu-author.samsung.com'].some(domain => 
+            window.location.hostname.includes(domain)
+        );
+
+        // Determine the date to use for checking
+        const checkDate = isQADomain && this.QAdate 
+            ? this.parseDate(this.QAdate)
+            : new Date();
+
+        // If no start/end dates, consider always active
         if (!disclaimer.startDate && !disclaimer.endDate) return true;
 
-        const now = new Date();
+        // Parsing dates with format DD/MM/YYYY HH:mm is now handled by parseDate method
+        const startDate = disclaimer.startDate ? this.parseDate(disclaimer.startDate) : null;
+        const endDate = disclaimer.endDate ? this.parseDate(disclaimer.endDate) : null;
 
-        // Parsing delle date con formato DD/MM/YYYY HH:mm
-        const parseDate = (dateString) => {
-            if (!dateString) return null;
-            const [day, month, yearTime] = dateString.split('/');
-            const [year, time] = yearTime.split(' ');
-            const [hours, minutes] = time.split(':');
-            return new Date(year, month - 1, day, hours, minutes);
-        };
-
-        const startDate = disclaimer.startDate ? parseDate(disclaimer.startDate) : null;
-        const endDate = disclaimer.endDate ? parseDate(disclaimer.endDate) : null;
-
-        // Controlla se la data corrente è nell'intervallo
-        if (startDate && now < startDate) return false;
-        if (endDate && now > endDate) return false;
+        // Check if current/QA date is within the disclaimer's active period
+        if (startDate && checkDate < startDate) return false;
+        if (endDate && checkDate > endDate) return false;
 
         return true;
     }
 
-    // Verifica se l'URL corrente corrisponde agli URL del disclaimer
-    isUrlMatch(disclaimer) {
-        // Se non sono specificate URL, considera il disclaimer applicabile ovunque
-        if (!disclaimer.URLs || disclaimer.URLs.length === 0) return true;
-
-        // Verifica che l'URL corrente sia in un dominio consentito
-        if (!this.isValidDomain(window.location.href)) {
-            console.log('Dominio non consentito:', window.location.href);
-            return false;
-        }
-
-        // Normalizza l'URL corrente
-        const currentUrl = this.normalizeUrl(window.location.href);
-
-        // Controlla se l'URL corrente è tra quelli specificati
-        return disclaimer.URLs.some(url => {
-            // Normalizza l'URL del disclaimer
-            const disclaimerUrl = this.normalizeUrl(url);
-            return disclaimerUrl === currentUrl;
-        });
-    }
-
-    // Verifica se il disclaimer è per la divisione corrente
-    isDivisionMatch(disclaimer) {
-        // Se currentDivision è 'ALL', o non è specificata una divisione nel disclaimer, 
-        // considera il disclaimer applicabile
-        if (this.currentDivision === 'ALL' || !disclaimer.div) return true;
-
-        // Se currentDivision contiene più divisioni
-        const allowedDivisions = this.currentDivision.split(',');
+    // Centralized date parsing method
+    parseDate(dateString) {
+        if (!dateString) return null;
         
-        // Controlla se la divisione del disclaimer è tra le divisioni consentite
-        return allowedDivisions.includes(disclaimer.div.toUpperCase());
-    }
-
-    // Inserisce i contenuti dei disclaimer per la pagina corrente
-    async insertPageContents() {
         try {
-            // Inizializza i dati se non già caricati
-            if (!this.data) {
-                await this.init();
-            }
-
-            // Trova i container dei disclaimer
-            let disclaimerContainer = document.getElementById(this.disclaimerContainerId);
+            const [day, month, yearTime] = dateString.split('/');
+            const [year, time] = yearTime.split(' ');
+            const [hours, minutes] = time.split(':');
             
-            // Se il container non esiste, crealo
-            if (!disclaimerContainer) {
-                disclaimerContainer = document.createElement('div');
-                disclaimerContainer.id = this.disclaimerContainerId;
-                document.body.appendChild(disclaimerContainer);
+            // Ensure all parts are converted to numbers
+            const parsedDate = new Date(
+                parseInt(year), 
+                parseInt(month) - 1, 
+                parseInt(day), 
+                parseInt(hours), 
+                parseInt(minutes)
+            );
+
+            // Validate the date
+            if (isNaN(parsedDate.getTime())) {
+                console.error('Invalid date format:', dateString);
+                return null;
             }
 
-            // Pulisci il container esistente
-            disclaimerContainer.innerHTML = '';
-
-            // Trova i disclaimers applicabili
-            const applicableDisclaimers = Object.values(this.data.disclaimers)
-                .filter(disclaimer => 
-                    this.isDisclaimerActive(disclaimer) && 
-                    this.isUrlMatch(disclaimer) &&
-                    this.isDivisionMatch(disclaimer)
-                );
-
-            // Inserisce i disclaimers trovati
-            applicableDisclaimers.forEach(disclaimer => {
-                // Crea l'elemento per questo disclaimer
-                const disclaimerElement = document.createElement('div');
-                disclaimerElement.className = 'disclaimer';
-
-                // Aggiungi titolo se presente
-                if (disclaimer.title) {
-                    const titleElement = document.createElement('h3');
-                    titleElement.textContent = disclaimer.title;
-                    disclaimerElement.appendChild(titleElement);
-                }
-
-                // Aggiungi testo con numerazione
-                const textElement = document.createElement('p');
-                textElement.innerHTML = `${disclaimer.id}. ${disclaimer.text}`;
-                disclaimerElement.appendChild(textElement);
-
-                // Aggiungi al container
-                disclaimerContainer.appendChild(disclaimerElement);
-            });
-
-            console.log('Disclaimers inseriti:', applicableDisclaimers.length);
-            return { 
-                success: applicableDisclaimers.map(d => d.id),
-                failed: []
-            };
+            return parsedDate;
         } catch (error) {
-            console.error('Errore nell\'inserimento dei contenuti:', error);
-            return { success: [], failed: [] };
+            console.error('Error parsing date:', dateString, error);
+            return null;
         }
     }
 }
 
-// Esempio di utilizzo
+// Example usage with QA date
 const parser = new ContentParser({
-    // URL del file JSON (opzionale)
-    jsonURL: 'https://example.com/disclaimers.json',
+    // Optional QA date for testing (now in dd/mm/yyyy HH:mm format)
+    QAdate: '15/01/2024 10:30',
     
-    // Divisioni correnti (opzionale, default 'ALL')
+    // Other existing options
     currentDivision: 'MX, AV',
-    
-    // Domini aggiuntivi (opzionale)
     allowedDomains: [
         'www.samsung.com',
         'p6-qa.samsung.com',
         'p6-eu-author.samsung.com/content/samsung'
-    ],
-
-    // ID del container dei disclaimers (opzionale)
-    disclaimerContainerId: 'cheilDisclaimers'
+    ]
 });
-
-// Carica i disclaimers per la pagina corrente
-parser.insertPageContents()
-    .then(result => {
-        console.log('Disclaimers inseriti con successo:', result.success);
-        console.log('Disclaimers falliti:', result.failed);
-    })
-    .catch(error => {
-        console.error('Errore durante l\'inserimento:', error);
-    });
