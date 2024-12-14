@@ -5,7 +5,7 @@
       "title": "Disclaimer title 1",
       "text": "Lorem ipsum 1",
       "URLs": ["https://www.samsung.com/it/","https://www.samsung.com/it/offer/"],
-      "div": "MX"
+      "div": "MX",
       "startDate": "31/01/2024 9:00",
       "endDate": "31/12/2025 9:00"
     },
