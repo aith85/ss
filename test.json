@@ -4,14 +4,14 @@
       "id": 1,
       "title": "Disclaimer title 1",
       "text": "Lorem ipsum 1",
-      "URLs": {"https://www.samsung.com/it/","https://www.samsung.com/it/offer/"},
+      "URLs": ["https://www.samsung.com/it/","https://www.samsung.com/it/offer/"],
       "div": "MX"
     },
     "id2": {
       "id": 2,
       "title": "Disclaimer title 2",
       "text": "Lorem ipsum 2",
-      "URLs": {"https://www.samsung.com/it/"},
+      "URLs": ["https://www.samsung.com/it/"],
       "div": "AV"
     }
   }
