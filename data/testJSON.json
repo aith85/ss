@@ -1,0 +1,43 @@
+{
+    "disclaimers": [
+        {
+            "id": "disclaimer1",
+            "index": 1,
+            "title": "Disclaimer title 1",
+            "text": "Lorem ipsum 1  see full legals at https://www.samsung.com/it/test123",
+            "URLs": [
+                "https://www.samsung.com/it/",
+                "https://www.samsung.com/it/test123/"
+            ],
+            "div": "MX",
+            "startDate": "2024-01-01 00:00:00",
+            "endDate": "2024-12-31 23:59:59"
+        },
+        {
+            "id": "disclaimer2",
+            "index": 2,
+            "title": "Disclaimer title 2",
+            "text": "Lorem ipsum 2 with missing mandatory fields",
+            "div": "AV"
+        },
+        {
+            "id": "disclaimer3",
+            "index": 3,
+            "title": "Disclaimer title 3",
+            "text": "Lorem ipsum 3",
+            "startDate": "2024-01-15 00:00:00",
+            "URLs": [
+                "https://www.samsung.com/it/test123"
+            ]
+        },
+        {
+            "id": "disclaimer4",
+            "index": 4,
+            "title": "Disclaimer title 4",
+            "text": "Lorem ipsum 4",
+            "URLs": [
+                "https://www.samsung.com/it/test123"
+            ]
+        }
+    ]
+}
