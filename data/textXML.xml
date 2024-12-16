@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<disclaimers>
+    <disclaimer>
+        <id>disclaimer1</id>
+        <index>1</index>
+        <title>Disclaimer title 1</title>
+        <text>Lorem ipsum 1  see full legals at https://www.samsung.com/it/test123</text>
+        <url>https://www.samsung.com/it/</url>
+        <url>https://www.samsung.com/it/test123/</url>
+        <div>MX</div>
+        <startDate>2024-01-01 00:00:00</startDate>
+        <endDate>2024-12-31 23:59:59</endDate>
+    </disclaimer>
+    <disclaimer>
+        <id>disclaimer2</id>
+        <index>2</index>
+        <title>Disclaimer title 2</title>
+        <text>Lorem ipsum 2 with missing mandatory fields</text>
+        <div>AV</div>
+    </disclaimer>
+    <disclaimer>
+        <id>disclaimer3</id>
+        <index>3</index>
+        <title>Disclaimer title 3</title>
+        <text>Lorem ipsum 3</text>
+        <startDate>2024-01-15 00:00:00</startDate>
+        <url>https://www.samsung.com/it/test123</url>
+    </disclaimer>
+    <disclaimer>
+        <id>disclaimer4</id>
+        <index>4</index>
+        <title>Disclaimer title 4</title>
+        <text>Lorem ipsum 4</text>
+        <url>https://www.samsung.com/it/test123</url>
+    </disclaimer>
+</disclaimers>
